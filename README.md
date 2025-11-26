@@ -26,12 +26,13 @@ ibswinfo | Collect data on unmanaged switches via ibswinfo (BETA) | Disabled
 hca | Collect HCA port counters | Disabled
 
 If you have a node name map file typically used with Subnet Managers, you can provide that file to the  `--ibnetdiscover.node-name-map` flag.  This will use friendly names for switches.
+Even without this flag, exporter still adds the `switch` label populated with whatever hostname (or GUID-style placeholder) ibnetdiscover returns.
 
 
 If you wish to run the exporter as a user other than root and do not want to use sudo, you must make the UMAD device read/write to all users with something like the following:
 
 ```
-$ cat /etc/udev/rules.d/99-ib.rules 
+$ cat /etc/udev/rules.d/99-ib.rules
 KERNEL=="umad*", NAME="infiniband/%k" MODE="0666"
 ```
 

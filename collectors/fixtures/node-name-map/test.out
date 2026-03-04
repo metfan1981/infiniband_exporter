@@ -1,0 +1,6 @@
+# Test node name map
+# Two switches matching test fixtures, two that don't exist
+0x506b4b03005c2740	"ib-i4l1s01"
+0x7cfe9003009ce5b0	"ib-i1l1s01"
+0x7cfe9003009ce710	"ib-i2l1s01"
+0xb83fd20300da1138	ib-i5l1s01

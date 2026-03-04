@@ -223,6 +223,29 @@ func TestIbnetdiscoverParsePortState(t *testing.T) {
 	}
 }
 
+func TestParseNodeNameMap(t *testing.T) {
+	devices, err := parseNodeNameMap("fixtures/node-name-map/test.out")
+	if err != nil {
+		t.Fatalf("Unexpected error: %s", err)
+	}
+	expected := map[string]string{
+		"0x506b4b03005c2740": "ib-i4l1s01",
+		"0x7cfe9003009ce5b0": "ib-i1l1s01",
+		"0x7cfe9003009ce710": "ib-i2l1s01",
+		"0xb83fd20300da1138": "ib-i5l1s01",
+	}
+	if !reflect.DeepEqual(devices, expected) {
+		t.Errorf("Unexpected result:\nExpected: %v\nGot: %v", expected, devices)
+	}
+}
+
+func TestParseNodeNameMapMissing(t *testing.T) {
+	_, err := parseNodeNameMap("/nonexistent/path")
+	if err == nil {
+		t.Error("Expected error for missing file")
+	}
+}
+
 func TestIbnetdiscoverParse2(t *testing.T) {
 	expectedHCAs := []InfinibandDevice{
 		{Type: "CA", LID: "78", GUID: "0x946dae0300630bfe", Rate: 50 * 4 * 125000000, RawRate: 50 * 4 * 125000000, Name: "Mellanox Technologies Aggregation Node",

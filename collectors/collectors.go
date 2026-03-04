@@ -21,6 +21,8 @@ import (
 	"runtime"
 
 	kingpin "github.com/alecthomas/kingpin/v2"
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -47,6 +49,12 @@ var (
 		prometheus.BuildFQName(namespace, "exporter", "last_execution"),
 		"Last execution time of exporter", []string{"collector"}, nil)
 )
+
+func ValidateFlags(logger log.Logger) {
+	if *switchCollectDeviceState && *nodeNameMap == "" {
+		level.Warn(logger).Log("msg", "collector.switch.device-state requires ibnetdiscover.node-name-map to be set, device state metrics will be skipped")
+	}
+}
 
 func ReadFixture(outputType string, name string) (string, error) {
 	_, filename, _, _ := runtime.Caller(0)

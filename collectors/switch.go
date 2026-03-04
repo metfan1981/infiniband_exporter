@@ -28,10 +28,11 @@ import (
 )
 
 var (
-	CollectSwitch          = kingpin.Flag("collector.switch", "Enable the switch collector").Default("true").Bool()
-	switchCollectBase      = kingpin.Flag("collector.switch.base-metrics", "Collect base metrics").Default("true").Bool()
-	switchCollectRcvErr    = kingpin.Flag("collector.switch.rcv-err-details", "Collect Rcv Error Details").Default("false").Bool()
-	switchCollectPortState = kingpin.Flag("collector.switch.port-state", "Report port link state (1=up, 0=down)").Default("false").Bool()
+	CollectSwitch            = kingpin.Flag("collector.switch", "Enable the switch collector").Default("true").Bool()
+	switchCollectBase        = kingpin.Flag("collector.switch.base-metrics", "Collect base metrics").Default("true").Bool()
+	switchCollectRcvErr      = kingpin.Flag("collector.switch.rcv-err-details", "Collect Rcv Error Details").Default("false").Bool()
+	switchCollectPortState   = kingpin.Flag("collector.switch.port-state", "Report port link state (1=up, 0=down)").Default("false").Bool()
+	switchCollectDeviceState = kingpin.Flag("collector.switch.device-state", "Report device presence from node-name-map (1=present, 0=missing)").Default("false").Bool()
 )
 
 type SwitchCollector struct {
@@ -74,6 +75,7 @@ type SwitchCollector struct {
 	Uplink                       *prometheus.Desc
 	Info                         *prometheus.Desc
 	PortState                    *prometheus.Desc
+	DeviceState                  *prometheus.Desc
 }
 
 type SwitchMetrics struct {
@@ -168,6 +170,8 @@ func NewSwitchCollector(devices *[]InfinibandDevice, runonce bool, logger log.Lo
 			"Infiniband switch information", []string{"guid", "switch", "lid"}, nil),
 		PortState: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "port_state"),
 			"Infiniband switch port link state (1=up, 0=down)", labels, nil),
+		DeviceState: prometheus.NewDesc(prometheus.BuildFQName(namespace, "switch", "device_state"),
+			"Infiniband switch device presence based on node-name-map (1=present, 0=missing)", []string{"guid", "switch"}, nil),
 	}
 }
 
@@ -208,6 +212,7 @@ func (s *SwitchCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- s.Uplink
 	ch <- s.Info
 	ch <- s.PortState
+	ch <- s.DeviceState
 }
 
 func (s *SwitchCollector) Collect(ch chan<- prometheus.Metric) {
@@ -328,6 +333,24 @@ func (s *SwitchCollector) Collect(ch chan<- prometheus.Metric) {
 			}
 			for _, port := range device.DownPorts {
 				ch <- prometheus.MustNewConstMetric(s.PortState, prometheus.GaugeValue, 0, device.GUID, device.Name, port)
+			}
+		}
+	}
+	if *switchCollectDeviceState && *nodeNameMap != "" {
+		expected, err := parseNodeNameMap(*nodeNameMap)
+		if err != nil {
+			level.Error(s.logger).Log("msg", "Failed to parse node name map", "err", err)
+		} else {
+			discovered := make(map[string]bool, len(*s.devices))
+			for _, d := range *s.devices {
+				discovered[d.GUID] = true
+			}
+			for guid, name := range expected {
+				if discovered[guid] {
+					ch <- prometheus.MustNewConstMetric(s.DeviceState, prometheus.GaugeValue, 1, guid, name)
+				} else {
+					ch <- prometheus.MustNewConstMetric(s.DeviceState, prometheus.GaugeValue, 0, guid, name)
+				}
 			}
 		}
 	}

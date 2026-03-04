@@ -25,6 +25,7 @@ switch | Collect switch port counters | Enabled
 switch.base-metrics | Collect base switch metrics | Enabled
 switch.rcv-err-details | Collect receive error details | Disabled
 switch.port-state | Report switch port link state (1=up, 0=down) | Disabled
+switch.device-state | Report device presence from node-name-map (1=present, 0=missing) | Disabled
 ibswinfo | Collect data on unmanaged switches via ibswinfo (BETA) | Disabled
 hca | Collect HCA port counters | Disabled
 hca.base-metrics | Collect base HCA metrics | Enabled
@@ -68,6 +69,14 @@ By default, when a port link goes down the exporter stops emitting metrics for t
 Enabling `--collector.switch.port-state` adds `infiniband_switch_port_state{guid, switch, port}` — a gauge that reports `1` when up, `0` when down. Disconnected ports (reported as `???` by `ibnetdiscover`) persistently emit `0` on every scrape.
 
 See `examples/infiniband.rules` for recording rules and alert examples.
+
+### Device state monitoring
+
+When a switch disappears from the fabric, `ibnetdiscover` stops listing it and all metrics for that device vanish. Prometheus cannot alert on absent time series without complex workarounds.
+
+Enabling `--collector.switch.device-state` compares the live `ibnetdiscover` output against the `--ibnetdiscover.node-name-map` file (which lists all expected switches by GUID). Devices present in the fabric emit `1`; devices in the map but missing from the fabric persistently emit `0`. This requires `--ibnetdiscover.node-name-map` to be set — typically generated from a source of truth like Netbox.
+
+See `examples/infiniband.rules` for alert examples.
 
 ### Large fabric considerations
 

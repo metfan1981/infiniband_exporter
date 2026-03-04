@@ -220,6 +220,17 @@ groups:
     annotations:
       title: InfiniBand switch {{ $labels.switch }} port {{ $labels.port }} is down
       description: Switch {{ $labels.switch }} ({{ $labels.guid }}) port {{ $labels.port }} link is down
+- name: infiniband-device-state
+  rules:
+  - alert: InfinibandSwitchDeviceDown
+    expr: infiniband_switch_device_state == 0
+    for: 5m
+    labels:
+      severity: critical
+      alertgroup: infiniband
+    annotations:
+      title: InfiniBand switch {{ $labels.switch }} is missing from fabric
+      description: Switch {{ $labels.switch }} ({{ $labels.guid }}) is listed in the node-name-map but not discovered by ibnetdiscover
 - name: infiniband
   rules:
   - alert: InfinibandCollectError

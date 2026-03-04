@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
@@ -294,6 +295,27 @@ func getDevicePorts(uplinks map[string]InfinibandUplink) []string {
 		keys = append(keys, key)
 	}
 	return keys
+}
+
+func parseNodeNameMap(path string) (map[string]string, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	devices := make(map[string]string)
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		fields := strings.Fields(line)
+		if len(fields) >= 2 {
+			guid := fields[0]
+			name := strings.Trim(strings.Join(fields[1:], " "), "\"")
+			devices[guid] = name
+		}
+	}
+	return devices, nil
 }
 
 func ibnetdiscoverArgs() (string, []string) {

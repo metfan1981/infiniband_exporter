@@ -129,6 +129,7 @@ func run(logger log.Logger) error {
 	}
 	level.Info(logger).Log("msg", "Starting infiniband_exporter", "version", version.Info())
 	level.Info(logger).Log("msg", "Build context", "build_context", version.BuildContext())
+	collectors.ValidateFlags(logger) // warn early about flag misconfigurations
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		//nolint:errcheck

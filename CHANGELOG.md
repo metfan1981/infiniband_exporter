@@ -1,3 +1,12 @@
+## 0.10.2 / 2026-03-05 (fork: metfan1981)
+
+* Add persistent switch device-state metric via node-name-map
+* Add persistent switch port-state metric (1=up, 0=down)
+
+## 0.10.1 / 2026-02-28 (fork: metfan1981)
+
+* Add hostname label to switch metrics
+
 ## 0.10.0 / 2025-01-12
 
 * Support TLS and basic auth (#25)
